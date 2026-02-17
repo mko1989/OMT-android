@@ -211,6 +211,8 @@ class CameraStreamSender(
                         Log.d(TAG, "Metadata: ${text.take(80)}")
                         if (text.contains("Subscribe", ignoreCase = true) && text.contains("Video", ignoreCase = true)) {
                             channel.subscribedVideo.set(true)
+                            // vMix often subscribes to video only; send audio to video clients too
+                            channel.subscribedAudio.set(true)
                             Log.d(TAG, "Subscribe Video from ${channel.socket.inetAddress}")
                         }
                         if (text.contains("Subscribe", ignoreCase = true) && text.contains("Audio", ignoreCase = true)) {
@@ -314,8 +316,7 @@ class CameraStreamSender(
             }
             if (localY == null || localUV == null) continue
             val width = localW; val height = localH
-            // Send video to all subscribed video clients. (Previously limited to 1 to reduce
-            // vMix dual-connection bandwidth; re-enabled for multi-client support.)
+            // Send to all video clients (matches GitHub alpha6; was take(1) which could cause sync issues)
             val videoChannels = channels.filter { it.subscribedVideo.get() && it.socket.isConnected }
             if (videoChannels.isEmpty()) continue
 
@@ -392,11 +393,11 @@ class CameraStreamSender(
                     Log.i(TAG, "FPS: %.1f | ${width}x$height ${if (useVmx) "VMX1" else "NV12"} | enc=${avgEnc}ms | ${videoChannels.size} client(s) | frame $frameCount".format(fps))
                     fpsFrameCount = 0; fpsLastLogTime = now; encodeTimeTotal = 0L
 
-                    // Send metadata keepalive to channels NOT receiving video
+                    // Send metadata keepalive to channels NOT receiving video (minimal payload like GitHub)
                     val idleChannels = channels.filter { it.socket.isConnected } - videoChannels.toSet()
                     for (ch in idleChannels) {
                         try { synchronized(ch.output) {
-                            sendMetadataToChannel(ch, "<OMTTally Preview=\"false\" Program=\"false\" />")
+                            sendMetadataToChannel(ch, " ")
                         }} catch (e: Exception) { handleSendError(ch, e) }
                     }
                 }
@@ -455,9 +456,10 @@ class CameraStreamSender(
                 val read = recorder.read(interleavedBuf, 0, interleavedBuf.size, AudioRecord.READ_BLOCKING)
                 if (read <= 0) continue
 
+                // OMT multiplexes audio+video on same connection — send audio only to video clients
                 val audioChannels = channels.filter {
-                    it.subscribedAudio.get() && it.socket.isConnected
-                }
+                    it.subscribedVideo.get() && it.subscribedAudio.get() && it.socket.isConnected
+                }.take(1) // same connection as video for proper multiplexing
                 if (audioChannels.isEmpty()) continue
 
                 val samplesPerCh = read / AUDIO_CHANNELS
@@ -471,13 +473,13 @@ class CameraStreamSender(
                 audioHdr.putLong(System.nanoTime() / 100) // timestamp
                 audioHdr.putShort(0) // reserved
                 audioHdr.putInt(dataLen)
-                // Audio ext header (24 bytes) — vMix layout: codec, sampleRate, samplesPerChannel, channels, bitsPerSample, reserved
-                audioHdr.putInt(CODEC_FPA1)          // FPA1 = Float Planar Audio
+                // Audio ext header (24 bytes) per PROTOCOL.md: Codec, SampleRate, SamplesPerChannel, Channels, ActiveChannels, Reserved1
+                audioHdr.putInt(CODEC_FPA1)          // FPA1 = 32bit float planar
                 audioHdr.putInt(AUDIO_SAMPLE_RATE)    // 48000
-                audioHdr.putInt(samplesPerCh)         // samples per channel (vMix expects this at offset 8)
+                audioHdr.putInt(samplesPerCh)         // samples per channel
                 audioHdr.putInt(AUDIO_CHANNELS)       // 2
-                audioHdr.putInt(AUDIO_BITS)           // 32
-                audioHdr.putInt(0)                    // reserved
+                audioHdr.putInt(0x03)                 // ActiveChannels bitfield: bits 0+1 = both L+R active (was wrongly bitsPerSample)
+                audioHdr.putInt(0)                    // Reserved1
                 val hdrBytes = audioHdr.array()
 
                 // De-interleave: [L0 R0 L1 R1 ...] → planar [L0 L1 ... Ln][R0 R1 ... Rn]

@@ -24,7 +24,7 @@ class OmtSourceBrowser(
 
     companion object {
         private const val TAG = "OmtSourceBrowser"
-        private const val SERVICE_TYPE = "_omt._tcp"
+        private const val SERVICE_TYPE = "_omt._tcp."
     }
 
     private val nsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager

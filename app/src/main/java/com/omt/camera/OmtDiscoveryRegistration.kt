@@ -20,8 +20,8 @@ class OmtDiscoveryRegistration(
 ) {
     companion object {
         private const val TAG = "OmtDiscovery"
-        /** OMT DNS-SD service type (RFC 6763). No trailing dot for broader compatibility. */
-        const val OMT_SERVICE_TYPE = "_omt._tcp"
+        /** OMT DNS-SD service type (RFC 6763). Trailing dot for full DNS-SD compatibility with OMT Viewer and vMix. */
+        const val OMT_SERVICE_TYPE = "_omt._tcp."
     }
 
     private val nsdManager: NsdManager? =

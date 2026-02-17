@@ -64,10 +64,10 @@ class MainActivity : AppCompatActivity() {
             ResOption("720p", Size(1280, 720)),
             ResOption("540p", Size(960, 540))
         )
-        private const val DEFAULT_RES_INDEX = 0 // 1080p
+        private const val DEFAULT_RES_INDEX = 0 // 1080p (matches GitHub alpha6 performance)
 
         private val FPS_OPTIONS = listOf(24, 25, 30, 50, 60)
-        private const val DEFAULT_FPS_INDEX = 2 // 30
+        private const val DEFAULT_FPS_INDEX = 2 // 30 (matches GitHub; 50fps was causing stutter)
     }
 
     // Views
