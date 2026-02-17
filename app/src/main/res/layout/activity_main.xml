@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootFrame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".MainActivity">
+
+    <!-- Full-screen camera preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Broadcast safe guides (preview only, NOT in stream) -->
+    <com.omt.camera.SafeGuideView
+        android:id="@+id/safeGuideView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Status badge — offset from top to avoid notification bar -->
+    <TextView
+        android:id="@+id/statusBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="48dp"
+        android:background="#99000000"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="4dp"
+        android:text="@string/not_streaming"
+        android:textColor="@color/text_primary"
+        android:textSize="11sp" />
+
+    <!-- LIVE indicator -->
+    <TextView
+        android:id="@+id/liveBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="16dp"
+        android:background="#CCFF0000"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="4dp"
+        android:text="LIVE"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Auto-hiding bottom overlay — compact horizontal -->
+    <LinearLayout
+        android:id="@+id/overlayPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/surface_overlay"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp">
+
+        <!-- Status line -->
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/not_streaming"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/deviceIpText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/videoHintText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="9sp"
+            android:visibility="gone" />
+
+        <!-- Controls row: Res | FPS | Grid | Badge | Refresh -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <Spinner
+                android:id="@+id/resolutionSpinner"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1" />
+
+            <Spinner
+                android:id="@+id/fpsSpinner"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp" />
+
+            <ImageButton
+                android:id="@+id/cameraSwitchButton"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Switch camera"
+                android:src="@drawable/ic_camera_switch"
+                android:scaleType="centerInside"
+                android:padding="6dp" />
+
+            <ImageButton
+                android:id="@+id/guidesButton"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Toggle guides"
+                android:src="@drawable/ic_grid"
+                android:scaleType="centerInside"
+                android:padding="6dp" />
+
+            <ImageButton
+                android:id="@+id/badgeToggleButton"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Toggle info overlay"
+                android:src="@drawable/ic_info_off"
+                android:scaleType="centerInside"
+                android:padding="6dp"
+                app:tint="@color/text_secondary" />
+
+            <ImageButton
+                android:id="@+id/refreshButton"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/restart_stream"
+                android:src="@drawable/ic_refresh"
+                android:scaleType="centerInside"
+                android:padding="6dp"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

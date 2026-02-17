@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme palette -->
+    <color name="surface_dark">#FF1A1A1A</color>
+    <color name="surface_card">#FF2A2A2A</color>
+    <color name="surface_elevated">#FF333333</color>
+    <color name="surface_overlay">#CC1A1A1A</color>
+    <color name="text_primary">#FFEEEEEE</color>
+    <color name="text_secondary">#FF9E9E9E</color>
+    <color name="accent">#FF4FC3F7</color>
+    <color name="accent_dim">#FF0288D1</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="guide_line">#55FFFFFF</color>
+    <color name="safe_area">#33FFFF00</color>
+
+    <!-- Legacy aliases -->
+    <color name="primary">@color/accent</color>
+    <color name="primary_dark">@color/surface_dark</color>
+</resources>

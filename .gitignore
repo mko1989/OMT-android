@@ -1,0 +1,19 @@
+# Build outputs
+build/
+app/build/
+app/.cxx/
+.gradle/
+
+# Android Studio / IDE
+.idea/
+*.iml
+local.properties
+
+# Logs and temp
+*.log
+logs.md
+errors.md
+
+# Do NOT ignore (upload these):
+# !gradle/wrapper/gradle-wrapper.jar
+# !gradle/wrapper/gradle-wrapper.properties

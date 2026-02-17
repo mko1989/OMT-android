@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OMT Camera</string>
+    <string name="hint_pc_ip">PC IP address</string>
+    <string name="hint_port">Port (vMix/PC connects to this)</string>
+    <string name="your_phone_ip">Your IP (fallback if discovery fails):</string>
+    <string name="vmix_connect_hint">In vMix: Add Input → OMT → enter %1$s:%2$d</string>
+    <string name="discovery_registered">Visible as OMT source: %1$s</string>
+    <string name="vmix_discovery_hint">In vMix: Add Input → OMT → double‑click this source in the list</string>
+    <string name="vmix_fallback_hint">Discovery failed. Try manual add: %1$s:%2$d</string>
+    <string name="connect_at">Connect at %1$s:%2$d — add in vMix (NDI/OMT)</string>
+    <string name="start_stream">Start stream</string>
+    <string name="stop_stream">Stop stream</string>
+    <string name="streaming_to">Streaming to %1$s:%2$d</string>
+    <string name="not_streaming">Not streaming</string>
+    <string name="error_camera">Camera error</string>
+    <string name="error_permission">Camera permission required</string>
+    <string name="permission_mic_rationale">Microphone is used for audio in the camera stream to vMix.</string>
+    <string name="permission_mic_denied">Microphone permission is needed for audio. Enable it in App info → Permissions.</string>
+    <string name="port_in_use_hint">Port in use. Wait a moment or try another port.</string>
+    <string name="video_vmx_required">Source appears in vMix; add libvmx.so for video (see BUILD_VMX.md).</string>
+    <string name="video_vmx_active">Video: VMX encoding active.</string>
+    <string name="restart_stream">Restart stream</string>
+
+    <!-- Viewer strings -->
+    <string name="viewer_title">OMT Viewer</string>
+    <string name="viewer_scanning">Scanning network for OMT sources…</string>
+    <string name="viewer_no_source">No source selected</string>
+</resources>

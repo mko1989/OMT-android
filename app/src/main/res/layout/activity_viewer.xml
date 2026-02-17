@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootFrame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <!-- Full-screen video surface -->
+    <SurfaceView
+        android:id="@+id/videoSurface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Status badge — center-top, offset down to avoid notification/system bar -->
+    <TextView
+        android:id="@+id/statusBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="12dp"
+        android:background="#99000000"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="4dp"
+        android:text="Searching…"
+        android:textColor="@color/text_primary"
+        android:textSize="11sp" />
+
+    <!-- Auto-hiding bottom overlay -->
+    <LinearLayout
+        android:id="@+id/overlayPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/surface_overlay"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="14dp">
+
+        <!-- Row 1: Source spinner + Connect + Disconnect -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Source:"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginEnd="4dp" />
+
+            <Spinner
+                android:id="@+id/sourceSpinner"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/connectButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginStart="6dp"
+                android:text="Connect"
+                android:textAllCaps="false"
+                android:textColor="@color/surface_dark"
+                android:textSize="12sp"
+                app:backgroundTint="@color/accent"
+                app:cornerRadius="6dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/disconnectButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginStart="4dp"
+                android:text="Stop"
+                android:textAllCaps="false"
+                android:enabled="false"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp"
+                app:backgroundTint="@color/surface_elevated"
+                app:cornerRadius="6dp" />
+
+            <ImageButton
+                android:id="@+id/badgeToggleButton"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Toggle info overlay"
+                android:src="@drawable/ic_info_off"
+                android:scaleType="centerInside"
+                android:padding="6dp"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- Row 2: Manual connect + status -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Manual:"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:layout_marginEnd="4dp" />
+
+            <EditText
+                android:id="@+id/manualHostEdit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="192.168.0.x"
+                android:inputType="text"
+                android:textSize="11sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary"
+                android:singleLine="true"
+                android:background="@android:color/transparent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+            <EditText
+                android:id="@+id/manualPortEdit"
+                android:layout_width="44dp"
+                android:layout_height="wrap_content"
+                android:hint="6500"
+                android:inputType="number"
+                android:textSize="11sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary"
+                android:singleLine="true"
+                android:background="@android:color/transparent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/manualConnectButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="4dp"
+                android:text="Go"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp"
+                app:backgroundTint="@color/surface_elevated"
+                app:cornerRadius="6dp" />
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:gravity="end"
+                android:text="Scanning…"
+                android:textColor="@color/text_secondary"
+                android:textSize="10sp"
+                android:singleLine="true" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
