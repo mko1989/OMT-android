@@ -3,13 +3,14 @@ package com.omt.camera
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
+import android.os.Build
 import android.util.Log
 import java.net.InetAddress
 
 /**
  * Registers this device as an OMT source on the local network using DNS-SD (mDNS).
- * OMT uses service type "_omt._tcp" and full name "HOSTNAME (Source Name)._omt._tcp.local".
- * vMix and other OMT receivers discover sources automatically and show them in the input list.
+ * OMT uses service type "_omt._tcp" and instance name "HOSTNAME (Source Name)".
+ * vMix and other OMT receivers discover sources via mDNS.
  */
 class OmtDiscoveryRegistration(
     private val context: Context,
@@ -19,8 +20,8 @@ class OmtDiscoveryRegistration(
 ) {
     companion object {
         private const val TAG = "OmtDiscovery"
-        /** OMT DNS-SD service type (RFC 6763). */
-        const val OMT_SERVICE_TYPE = "_omt._tcp."
+        /** OMT DNS-SD service type (RFC 6763). No trailing dot for broader compatibility. */
+        const val OMT_SERVICE_TYPE = "_omt._tcp"
     }
 
     private val nsdManager: NsdManager? =
@@ -43,9 +44,16 @@ class OmtDiscoveryRegistration(
             return
         }
         unregister()
-        // OMT format: HOSTNAME (Source Name). Use explicit host so vMix resolves to correct WiFi IP.
+        // OMT format: "HOSTNAME (Source Name)" for instance name. vMix discovers via mDNS.
+        val instanceName = if (sourceName.contains("(") && sourceName.contains(")")) {
+            sourceName
+        } else {
+            val host = (Build.MODEL ?: "Android").take(30).replace(Regex("[^\\w\\s-]"), "")
+                .trim().takeIf { it.isNotBlank() } ?: "OMT"
+            "$host ($sourceName)"
+        }
         val info = NsdServiceInfo().apply {
-            serviceName = sourceName
+            serviceName = instanceName
             serviceType = OMT_SERVICE_TYPE
             setPort(port)
             hostAddress?.takeIf { it.isNotBlank() }?.let { addr ->

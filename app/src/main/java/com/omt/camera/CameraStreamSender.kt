@@ -82,9 +82,17 @@ class CameraStreamSender(
     @Volatile private var noClientLogCount = 0
 
     private val running = AtomicBoolean(false)
+    private val audioEnabled = AtomicBoolean(true)
     private var acceptThread: Thread? = null
     private var encodeThread: Thread? = null
     private var audioThread: Thread? = null
+
+    fun setAudioEnabled(enabled: Boolean) {
+        audioEnabled.set(enabled)
+        Log.i(TAG, "Microphone ${if (enabled) "ON" else "OFF"}")
+    }
+
+    fun isAudioEnabled(): Boolean = audioEnabled.get()
 
     // --- Double-buffer for producer (camera) → consumer (encoder) ---
     private class FrameBuffer {
@@ -440,6 +448,10 @@ class CameraStreamSender(
 
         try {
             while (running.get()) {
+                if (!audioEnabled.get()) {
+                    Thread.sleep(50)
+                    continue
+                }
                 val read = recorder.read(interleavedBuf, 0, interleavedBuf.size, AudioRecord.READ_BLOCKING)
                 if (read <= 0) continue
 

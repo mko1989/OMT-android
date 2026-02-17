@@ -33,7 +33,7 @@ git add .
 # .gitignore will exclude build/, .gradle/, etc.
 git status   # verify only source files are staged
 git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/OMT-camera-app.git
+git remote add origin https://github.com/mko1989/OMT-android.git
 git push -u origin main
 ```
 

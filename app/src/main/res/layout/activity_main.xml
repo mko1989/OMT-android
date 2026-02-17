@@ -53,18 +53,18 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
-    <!-- Auto-hiding bottom overlay — compact horizontal -->
+    <!-- Status overlay (auto-hiding) — above controls -->
     <LinearLayout
         android:id="@+id/overlayPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:layout_marginBottom="56dp"
         android:background="@color/surface_overlay"
         android:orientation="vertical"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="10dp">
+        android:paddingVertical="8dp">
 
-        <!-- Status line -->
         <TextView
             android:id="@+id/statusText"
             android:layout_width="match_parent"
@@ -90,73 +90,90 @@
             android:textColor="@color/text_secondary"
             android:textSize="9sp"
             android:visibility="gone" />
+    </LinearLayout>
 
-        <!-- Controls row: Res | FPS | Grid | Badge | Refresh -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+    <!-- Camera controls — horizontal bar along long edge (bottom in landscape) -->
+    <LinearLayout
+        android:id="@+id/controlsBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/surface_overlay"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
 
-            <Spinner
-                android:id="@+id/resolutionSpinner"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1" />
+        <Spinner
+            android:id="@+id/resolutionSpinner"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:minWidth="60dp" />
 
-            <Spinner
-                android:id="@+id/fpsSpinner"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:layout_marginStart="4dp" />
+        <Spinner
+            android:id="@+id/fpsSpinner"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:minWidth="60dp" />
 
-            <ImageButton
-                android:id="@+id/cameraSwitchButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="6dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Switch camera"
-                android:src="@drawable/ic_camera_switch"
-                android:scaleType="centerInside"
-                android:padding="6dp" />
+        <ImageButton
+            android:id="@+id/cameraSwitchButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Switch camera"
+            android:src="@drawable/ic_camera_switch"
+            android:scaleType="centerInside"
+            android:padding="6dp" />
 
-            <ImageButton
-                android:id="@+id/guidesButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Toggle guides"
-                android:src="@drawable/ic_grid"
-                android:scaleType="centerInside"
-                android:padding="6dp" />
+        <ImageButton
+            android:id="@+id/micButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mic_toggle"
+            android:src="@drawable/ic_mic"
+            android:scaleType="centerInside"
+            android:padding="6dp" />
 
-            <ImageButton
-                android:id="@+id/badgeToggleButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Toggle info overlay"
-                android:src="@drawable/ic_info_off"
-                android:scaleType="centerInside"
-                android:padding="6dp"
-                app:tint="@color/text_secondary" />
+        <ImageButton
+            android:id="@+id/guidesButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Toggle guides"
+            android:src="@drawable/ic_grid"
+            android:scaleType="centerInside"
+            android:padding="6dp" />
 
-            <ImageButton
-                android:id="@+id/refreshButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/restart_stream"
-                android:src="@drawable/ic_refresh"
-                android:scaleType="centerInside"
-                android:padding="6dp"
-                app:tint="@color/text_secondary" />
-        </LinearLayout>
+        <ImageButton
+            android:id="@+id/badgeToggleButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Toggle info overlay"
+            android:src="@drawable/ic_info_off"
+            android:scaleType="centerInside"
+            android:padding="6dp"
+            app:tint="@color/text_secondary" />
+
+        <ImageButton
+            android:id="@+id/refreshButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/restart_stream"
+            android:src="@drawable/ic_refresh"
+            android:scaleType="centerInside"
+            android:padding="6dp"
+            app:tint="@color/text_secondary" />
     </LinearLayout>
 </FrameLayout>

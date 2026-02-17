@@ -36,11 +36,13 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import android.content.SharedPreferences
 import java.net.BindException
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.util.Collections
+import java.util.Random
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
@@ -49,7 +51,12 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
-        private const val OMT_PORT = 6500
+        /** OMT port range per protocol (6400-6600). */
+        private const val PORT_MIN = 6400
+        private const val PORT_MAX = 6600
+        private const val PREFS_NAME = "omt_camera_prefs"
+        private const val KEY_STREAM_NAME = "stream_name"
+        private const val DEFAULT_STREAM_NAME = "Android (OMT Camera)"
         private const val OVERLAY_AUTO_HIDE_MS = 5000L
 
         private val RESOLUTION_OPTIONS = listOf(
@@ -75,11 +82,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resolutionSpinner: Spinner
     private lateinit var fpsSpinner: Spinner
     private lateinit var cameraSwitchButton: ImageButton
+    private lateinit var micButton: ImageButton
     private lateinit var guidesButton: ImageButton
     private lateinit var badgeToggleButton: ImageButton
     private lateinit var refreshButton: ImageButton
 
+    private lateinit var prefs: SharedPreferences
+    private val portRandom = Random()
     private var useFrontCamera = false
+    private var micEnabled = true
     private var streamSender: CameraStreamSender? = null
     private var discoveryRegistration: OmtDiscoveryRegistration? = null
     private val cameraExecutor = Executors.newSingleThreadExecutor()
@@ -131,9 +142,12 @@ class MainActivity : AppCompatActivity() {
         resolutionSpinner = findViewById(R.id.resolutionSpinner)
         fpsSpinner = findViewById(R.id.fpsSpinner)
         cameraSwitchButton = findViewById(R.id.cameraSwitchButton)
+        micButton = findViewById(R.id.micButton)
         guidesButton = findViewById(R.id.guidesButton)
         badgeToggleButton = findViewById(R.id.badgeToggleButton)
         refreshButton = findViewById(R.id.refreshButton)
+
+        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
 
         previewView.setOnClickListener { toggleOverlay() }
         safeGuideView.setOnClickListener { toggleOverlay() }
@@ -141,6 +155,12 @@ class MainActivity : AppCompatActivity() {
         cameraSwitchButton.setOnClickListener {
             useFrontCamera = !useFrontCamera
             startCamera()
+            scheduleOverlayHide()
+        }
+        micButton.setOnClickListener {
+            micEnabled = !micEnabled
+            streamSender?.setAudioEnabled(micEnabled)
+            updateMicIcon()
             scheduleOverlayHide()
         }
         refreshButton.setOnClickListener { restartStream(); scheduleOverlayHide() }
@@ -165,9 +185,21 @@ class MainActivity : AppCompatActivity() {
         }
         badgeToggleButton.alpha = 0.5f
 
+        updateMicIcon()
         setupResolutionSpinner()
         setupFpsSpinner()
         scheduleOverlayHide()
+    }
+
+    private fun updateMicIcon() {
+        micButton.setImageResource(if (micEnabled) R.drawable.ic_mic else R.drawable.ic_mic_off)
+    }
+
+    private fun pickRandomPort(): Int = PORT_MIN + portRandom.nextInt(PORT_MAX - PORT_MIN + 1)
+
+    private fun getStreamName(): String {
+        val name = prefs.getString(KEY_STREAM_NAME, DEFAULT_STREAM_NAME)?.trim() ?: ""
+        return if (name.isBlank()) DEFAULT_STREAM_NAME else name
     }
 
     private fun updateGridIcon() {
@@ -306,9 +338,10 @@ class MainActivity : AppCompatActivity() {
     private fun restartStream() { stopStreaming(); startStreaming() }
 
     private fun startStreaming() {
-        val port = OMT_PORT
+        val port = pickRandomPort()
         analyzing = true
-        val sourceName = "Android (OMT Camera)"
+        val sourceName = getStreamName()
+        Log.i(TAG, "Starting stream on port $port as \"$sourceName\"")
         discoveryRegistration = OmtDiscoveryRegistration(
             context = this, sourceName = sourceName,
             onRegistered = { name -> runOnUiThread { statusBadge.text = name; updateStreamStatus(port, null) } },
@@ -357,6 +390,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
+        streamSender?.setAudioEnabled(micEnabled)
         streamSender?.start()
         startStreamingService(port)
         updateStreamStatus(port, null)
@@ -400,6 +434,7 @@ class MainActivity : AppCompatActivity() {
         streamSender?.stop(); streamSender = null
         setLive(false)
         statusText.text = getString(R.string.not_streaming)
+        statusBadge.text = getString(R.string.not_streaming)
         deviceIpText.text = getString(R.string.vmix_discovery_hint)
         videoHintText.visibility = View.GONE
     }

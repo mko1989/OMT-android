@@ -42,7 +42,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
+            android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.OmtCamera" />
 
         <!-- Viewer mode -->

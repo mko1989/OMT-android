@@ -21,6 +21,9 @@
     <string name="video_vmx_required">Source appears in vMix; add libvmx.so for video (see BUILD_VMX.md).</string>
     <string name="video_vmx_active">Video: VMX encoding active.</string>
     <string name="restart_stream">Restart stream</string>
+    <string name="mic_toggle">Microphone on/off</string>
+    <string name="stream_name_label">Stream name:</string>
+    <string name="stream_name_hint">e.g. Camera 1</string>
 
     <!-- Viewer strings -->
     <string name="viewer_title">OMT Viewer</string>
