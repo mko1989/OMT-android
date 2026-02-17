@@ -35,7 +35,9 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import android.content.SharedPreferences
 import java.net.BindException
 import java.net.Inet4Address
@@ -56,7 +58,6 @@ class MainActivity : AppCompatActivity() {
         private const val PORT_MAX = 6600
         private const val PREFS_NAME = "omt_camera_prefs"
         private const val KEY_STREAM_NAME = "stream_name"
-        private const val DEFAULT_STREAM_NAME = "Android (OMT Camera)"
         private const val OVERLAY_AUTO_HIDE_MS = 5000L
 
         private val RESOLUTION_OPTIONS = listOf(
@@ -76,6 +77,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusBadge: TextView
     private lateinit var liveBadge: TextView
     private lateinit var overlayPanel: LinearLayout
+    private lateinit var controlsBar: LinearLayout
     private lateinit var deviceIpText: TextView
     private lateinit var statusText: TextView
     private lateinit var videoHintText: TextView
@@ -131,11 +133,20 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_main)
 
+        val rootFrame = findViewById<View>(R.id.rootFrame)
+        ViewCompat.setOnApplyWindowInsetsListener(rootFrame) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        ViewCompat.requestApplyInsets(rootFrame)
+
         previewView = findViewById(R.id.previewView)
         safeGuideView = findViewById(R.id.safeGuideView)
         statusBadge = findViewById(R.id.statusBadge)
         liveBadge = findViewById(R.id.liveBadge)
         overlayPanel = findViewById(R.id.overlayPanel)
+        controlsBar = findViewById(R.id.controlsBar)
         deviceIpText = findViewById(R.id.deviceIpText)
         statusText = findViewById(R.id.statusText)
         videoHintText = findViewById(R.id.videoHintText)
@@ -149,7 +160,9 @@ class MainActivity : AppCompatActivity() {
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
 
+        previewView.isClickable = true
         previewView.setOnClickListener { toggleOverlay() }
+        safeGuideView.isClickable = true
         safeGuideView.setOnClickListener { toggleOverlay() }
 
         cameraSwitchButton.setOnClickListener {
@@ -198,8 +211,9 @@ class MainActivity : AppCompatActivity() {
     private fun pickRandomPort(): Int = PORT_MIN + portRandom.nextInt(PORT_MAX - PORT_MIN + 1)
 
     private fun getStreamName(): String {
-        val name = prefs.getString(KEY_STREAM_NAME, DEFAULT_STREAM_NAME)?.trim() ?: ""
-        return if (name.isBlank()) DEFAULT_STREAM_NAME else name
+        val default = getString(R.string.default_stream_name)
+        val name = prefs.getString(KEY_STREAM_NAME, default)?.trim() ?: ""
+        return name.ifBlank { default }
     }
 
     private fun updateGridIcon() {
@@ -260,11 +274,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun setOverlayVisible(visible: Boolean) {
         overlayVisible = visible
+        val duration = 250L
         overlayPanel.animate()
             .alpha(if (visible) 1f else 0f)
-            .setDuration(250)
-            .withStartAction { if (visible) overlayPanel.visibility = View.VISIBLE }
-            .withEndAction { if (!visible) overlayPanel.visibility = View.GONE }
+            .setDuration(duration)
+            .withStartAction { if (visible) { overlayPanel.visibility = View.VISIBLE; controlsBar.visibility = View.VISIBLE } }
+            .withEndAction { if (!visible) { overlayPanel.visibility = View.GONE; controlsBar.visibility = View.GONE } }
+            .start()
+        controlsBar.animate()
+            .alpha(if (visible) 1f else 0f)
+            .setDuration(duration)
+            .withStartAction { if (visible) controlsBar.visibility = View.VISIBLE }
+            .withEndAction { if (!visible) controlsBar.visibility = View.GONE }
             .start()
     }
 
@@ -344,7 +365,7 @@ class MainActivity : AppCompatActivity() {
         Log.i(TAG, "Starting stream on port $port as \"$sourceName\"")
         discoveryRegistration = OmtDiscoveryRegistration(
             context = this, sourceName = sourceName,
-            onRegistered = { name -> runOnUiThread { statusBadge.text = name; updateStreamStatus(port, null) } },
+            onRegistered = { name -> runOnUiThread { statusBadge.text = name; updateStreamStatus(port) } },
             onRegistrationFailed = { msg -> runOnUiThread {
                 statusText.text = getString(R.string.not_streaming) + " — $msg"
                 deviceIpText.text = getString(R.string.vmix_fallback_hint, getLocalIpAddress() ?: "?", port)
@@ -357,7 +378,7 @@ class MainActivity : AppCompatActivity() {
             onServerListening = {
                 runOnUiThread {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    updateStreamStatus(port, null)
+                    updateStreamStatus(port)
                     videoHintText.visibility = View.VISIBLE
                     videoHintText.text = if (VmxEncoder.isAvailable())
                         getString(R.string.video_vmx_active) else getString(R.string.video_vmx_required)
@@ -366,11 +387,11 @@ class MainActivity : AppCompatActivity() {
             },
             onClientConnected = { clientIp -> runOnUiThread {
                 statusText.text = getString(R.string.streaming_to, clientIp, port)
-                statusBadge.text = "STREAMING $clientIp"
+                statusBadge.text = getString(R.string.streaming_badge, clientIp)
                 setLive(true)
             }},
             onClientDisconnected = { runOnUiThread {
-                statusText.text = getString(R.string.not_streaming) + " (no client)"
+                statusText.text = getString(R.string.not_streaming_no_client)
                 statusBadge.text = getString(R.string.not_streaming)
                 setLive(false)
             }},
@@ -385,7 +406,7 @@ class MainActivity : AppCompatActivity() {
                         videoHintText.visibility = View.GONE
                         Toast.makeText(this, getString(R.string.port_in_use_hint), Toast.LENGTH_LONG).show()
                     } else {
-                        Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.error_format, e.message ?: "unknown"), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -393,7 +414,7 @@ class MainActivity : AppCompatActivity() {
         streamSender?.setAudioEnabled(micEnabled)
         streamSender?.start()
         startStreamingService(port)
-        updateStreamStatus(port, null)
+        updateStreamStatus(port)
     }
 
     private fun setLive(live: Boolean) {
@@ -408,20 +429,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun stopStreamingService() { stopService(Intent(this, StreamingService::class.java)) }
 
-    private fun updateStreamStatus(port: Int, clientIp: String?) {
+    private fun updateStreamStatus(port: Int) {
         val ip = getLocalIpAddress()
         deviceIpText.text = when {
-            clientIp != null -> getString(R.string.streaming_to, clientIp, port)
             ip != null -> getString(R.string.connect_at, ip, port)
             else -> getString(R.string.vmix_discovery_hint)
         }
-        statusText.text = when {
-            clientIp != null -> getString(R.string.streaming_to, clientIp, port)
-            else -> getString(R.string.not_streaming) + " — waiting for vMix…"
-        }
+        statusText.text = getString(R.string.not_streaming_waiting)
         statusBadge.text = when {
-            clientIp != null -> "LIVE $clientIp"
-            ip != null -> "$ip:$port"
+            ip != null -> getString(R.string.address_port, ip, port)
             else -> getString(R.string.not_streaming)
         }
     }

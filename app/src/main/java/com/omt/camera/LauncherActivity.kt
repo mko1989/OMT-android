@@ -10,7 +10,9 @@ import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.card.MaterialCardView
 
 class LauncherActivity : AppCompatActivity() {
@@ -18,7 +20,6 @@ class LauncherActivity : AppCompatActivity() {
     companion object {
         private const val PREFS_NAME = "omt_camera_prefs"
         private const val KEY_STREAM_NAME = "stream_name"
-        private const val DEFAULT_STREAM_NAME = "Android (OMT Camera)"
     }
 
     private lateinit var prefs: SharedPreferences
@@ -28,9 +29,17 @@ class LauncherActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_launcher)
 
+        val rootLayout = findViewById<View>(R.id.launcherRoot)
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val pad = (32 * resources.displayMetrics.density).toInt()
+            view.setPadding(insets.left + pad, insets.top + pad, insets.right + pad, insets.bottom + pad)
+            WindowInsetsCompat.CONSUMED
+        }
+
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         val streamNameEdit = findViewById<EditText>(R.id.streamNameEdit)
-        streamNameEdit.setText(prefs.getString(KEY_STREAM_NAME, DEFAULT_STREAM_NAME) ?: DEFAULT_STREAM_NAME)
+        streamNameEdit.setText(prefs.getString(KEY_STREAM_NAME, getString(R.string.default_stream_name)) ?: getString(R.string.default_stream_name))
         streamNameEdit.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) saveStreamName(streamNameEdit)
         }

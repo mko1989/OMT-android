@@ -58,6 +58,8 @@ class OmtStreamReceiver(
 
     // Reusable decode buffers
     private var bgraBuf: ByteArray? = null
+    private var nv12YBuf: ByteArray? = null
+    private var nv12UvBuf: ByteArray? = null
 
     // Triple-buffered bitmap pool: receive thread takes from pool, writes pixels,
     // sets pending. Render thread takes pending, draws it, returns to pool.
@@ -69,6 +71,7 @@ class OmtStreamReceiver(
     private var audioTrack: AudioTrack? = null
     private var audioSampleRate = 0
     private var audioChannels = 0
+    private var audioInterleavedBuf: FloatArray? = null  // reused to avoid per-frame allocation
 
     // FPS measurement
     private var fpsCount = 0L
@@ -151,7 +154,7 @@ class OmtStreamReceiver(
                 input.readFully(headerBuf)
                 val version = headerBuf[0].toInt() and 0xFF
                 val frameType = headerBuf[1].toInt() and 0xFF
-                val dataLen = readIntLE(headerBuf, 12)
+                val dataLen = readIntLEAt12(headerBuf)
 
                 if (version != 1 || dataLen <= 0 || dataLen > 16 * 1024 * 1024) {
                     // Bad header — skip remaining data if length is sane
@@ -209,8 +212,8 @@ class OmtStreamReceiver(
         if (bgraBuf == null || bgraBuf!!.size != bgraSize) bgraBuf = ByteArray(bgraSize)
 
         val decoded = when (codec) {
-            CODEC_VMX1 -> { lastCodecName = "VMX1"; decodeVmx(data, payloadOffset, payloadLen, width, height) }
-            CODEC_NV12 -> { lastCodecName = "NV12"; decodeNv12(data, payloadOffset, payloadLen, width, height) }
+            CODEC_VMX1 -> { lastCodecName = "VMX1"; decodeVmx(data, payloadLen, width, height) }
+            CODEC_NV12 -> { lastCodecName = "NV12"; decodeNv12(data, payloadLen, width, height) }
             else -> { Log.w(TAG, "Unknown codec: 0x${Integer.toHexString(codec)}"); false }
         }
         if (!decoded) return
@@ -280,15 +283,16 @@ class OmtStreamReceiver(
 
         if (codec == CODEC_FPA1 || bitsPerSample == 32) {
             // FPA1 = Float Planar Audio: [L0 L1 ... Ln][R0 R1 ... Rn]
-            // Convert planar float32 to interleaved float for AudioTrack
+            val totalSamples = samplesPerCh * channels
+            var interleaved = audioInterleavedBuf
+            if (interleaved == null || interleaved.size < totalSamples) {
+                interleaved = FloatArray(totalSamples)
+                audioInterleavedBuf = interleaved
+            }
             val floatBuf = ByteBuffer.wrap(data, payloadOffset,
                 minOf(payloadLen, samplesPerCh * channels * 4))
                 .order(ByteOrder.LITTLE_ENDIAN)
-            val totalSamples = samplesPerCh * channels
-            val interleaved = FloatArray(totalSamples)
-
             if (channels >= 2) {
-                // De-planar: read left plane, then right plane, interleave
                 for (i in 0 until samplesPerCh) {
                     interleaved[i * 2] = if (floatBuf.hasRemaining()) floatBuf.float else 0f
                 }
@@ -300,7 +304,7 @@ class OmtStreamReceiver(
                     interleaved[i] = if (floatBuf.hasRemaining()) floatBuf.float else 0f
                 }
             }
-            audioTrack?.write(interleaved, 0, interleaved.size, AudioTrack.WRITE_NON_BLOCKING)
+            audioTrack?.write(interleaved, 0, totalSamples, AudioTrack.WRITE_NON_BLOCKING)
         } else if (bitsPerSample == 16) {
             val totalSamples = samplesPerCh * channels
             val pcm16 = ShortArray(totalSamples.coerceAtMost(payloadLen / 2))
@@ -351,7 +355,7 @@ class OmtStreamReceiver(
 
     // ---- Decode ----
 
-    private fun decodeVmx(data: ByteArray, offset: Int, len: Int, width: Int, height: Int): Boolean {
+    private fun decodeVmx(data: ByteArray, len: Int, width: Int, height: Int): Boolean {
         if (vmxHandle == 0L || vmxWidth != width || vmxHeight != height) {
             VmxDecoder.destroy(vmxHandle)
             vmxHandle = VmxDecoder.create(width, height)
@@ -363,18 +367,21 @@ class OmtStreamReceiver(
             }
             Log.i(TAG, "VMX decoder created: ${width}x$height")
         }
+        val offset = OMT_VIDEO_EXT_HEADER_SIZE
         val vmxBytes = if (offset == 0 && len == data.size) data
             else ByteArray(len).also { System.arraycopy(data, offset, it, 0, len) }
         return VmxDecoder.decodeFrame(vmxHandle, vmxBytes, len, bgraBuf!!, width, height)
     }
 
-    private fun decodeNv12(data: ByteArray, offset: Int, len: Int, width: Int, height: Int): Boolean {
+    private fun decodeNv12(data: ByteArray, len: Int, width: Int, height: Int): Boolean {
+        val offset = OMT_VIDEO_EXT_HEADER_SIZE
         val ySize = width * height; val uvSize = width * (height / 2)
         if (len < ySize + uvSize) { Log.w(TAG, "NV12 data too short: $len < ${ySize + uvSize}"); return false }
-        val yArr = ByteArray(ySize); val uvArr = ByteArray(uvSize)
-        System.arraycopy(data, offset, yArr, 0, ySize)
-        System.arraycopy(data, offset + ySize, uvArr, 0, uvSize)
-        VmxDecoder.nv12ToBgra(yArr, uvArr, bgraBuf!!, width, height)
+        if (nv12YBuf == null || nv12YBuf!!.size != ySize) nv12YBuf = ByteArray(ySize)
+        if (nv12UvBuf == null || nv12UvBuf!!.size != uvSize) nv12UvBuf = ByteArray(uvSize)
+        System.arraycopy(data, offset, nv12YBuf!!, 0, ySize)
+        System.arraycopy(data, offset + ySize, nv12UvBuf!!, 0, uvSize)
+        VmxDecoder.nv12ToBgra(nv12YBuf!!, nv12UvBuf!!, bgraBuf!!, width, height)
         return true
     }
 
@@ -388,9 +395,9 @@ class OmtStreamReceiver(
         output.write(hdr.array()); output.write(payload); output.flush()
     }
 
-    private fun readIntLE(buf: ByteArray, offset: Int): Int =
-        (buf[offset].toInt() and 0xFF) or ((buf[offset+1].toInt() and 0xFF) shl 8) or
-        ((buf[offset+2].toInt() and 0xFF) shl 16) or ((buf[offset+3].toInt() and 0xFF) shl 24)
+    private fun readIntLEAt12(buf: ByteArray): Int =
+        (buf[12].toInt() and 0xFF) or ((buf[13].toInt() and 0xFF) shl 8) or
+        ((buf[14].toInt() and 0xFF) shl 16) or ((buf[15].toInt() and 0xFF) shl 24)
 
     private fun skipBytes(input: DataInputStream, count: Int) {
         val skip = ByteArray(minOf(count, 8192))

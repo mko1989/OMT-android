@@ -1,7 +1,6 @@
 package com.omt.camera
 
 import android.util.Log
-import java.nio.ByteBuffer
 
 object VmxEncoder {
     private const val TAG = "VmxEncoder"
@@ -28,9 +27,6 @@ object VmxEncoder {
     private external fun nativeInit(): Boolean
     private external fun nativeCreate(width: Int, height: Int, numThreads: Int): Long
     private external fun nativeDestroy(handle: Long)
-    private external fun nativeEncode(
-        handle: Long, y: ByteArray, strideY: Int, uv: ByteArray, strideUV: Int
-    ): ByteArray?
     private external fun nativeEncodeInto(
         handle: Long, y: ByteArray, strideY: Int, uv: ByteArray, strideUV: Int,
         output: ByteArray, maxOutputLen: Int
@@ -61,13 +57,5 @@ object VmxEncoder {
     ): Int {
         if (handle == 0L || !isAvailable()) return -1
         return nativeEncodeInto(handle, yArr, strideY, uvArr, strideUV, output, output.size)
-    }
-
-    @JvmStatic
-    fun encodeDirect(
-        handle: Long, yArr: ByteArray, strideY: Int, uvArr: ByteArray, strideUV: Int
-    ): ByteArray? {
-        if (handle == 0L || !isAvailable()) return null
-        return nativeEncode(handle, yArr, strideY, uvArr, strideUV)
     }
 }

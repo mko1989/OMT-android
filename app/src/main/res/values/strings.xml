@@ -9,6 +9,7 @@
     <string name="vmix_discovery_hint">In vMix: Add Input → OMT → double‑click this source in the list</string>
     <string name="vmix_fallback_hint">Discovery failed. Try manual add: %1$s:%2$d</string>
     <string name="connect_at">Connect at %1$s:%2$d — add in vMix (NDI/OMT)</string>
+    <string name="address_port">%1$s:%2$d</string>
     <string name="start_stream">Start stream</string>
     <string name="stop_stream">Stop stream</string>
     <string name="streaming_to">Streaming to %1$s:%2$d</string>
@@ -24,9 +25,44 @@
     <string name="mic_toggle">Microphone on/off</string>
     <string name="stream_name_label">Stream name:</string>
     <string name="stream_name_hint">e.g. Camera 1</string>
+    <string name="default_stream_name">Android (OMT Camera)</string>
 
-    <!-- Viewer strings -->
+    <!-- Launcher -->
+    <string name="subtitle">Open Media Transport for Android</string>
+    <string name="launcher_camera">Camera</string>
+    <string name="launcher_camera_desc">Stream your camera to vMix or other OMT viewers</string>
+    <string name="launcher_viewer">Viewer</string>
+    <string name="launcher_viewer_desc">Watch OMT streams from vMix or other sources on the network</string>
+    <string name="camera_unavailable_tv">Camera unavailable on this device</string>
+
+    <!-- Main camera -->
+    <string name="live">LIVE</string>
+    <string name="streaming_badge">STREAMING %1$s</string>
+    <string name="live_badge">LIVE %1$s</string>
+    <string name="not_streaming_waiting">Not streaming — waiting for vMix…</string>
+    <string name="not_streaming_no_client">Not streaming (no client)</string>
+    <string name="error_format">Error: %1$s</string>
+
+    <!-- Viewer -->
     <string name="viewer_title">OMT Viewer</string>
-    <string name="viewer_scanning">Scanning network for OMT sources…</string>
+    <string name="viewer_searching">Searching…</string>
+    <string name="viewer_scanning">Scanning…</string>
+    <string name="viewer_source_label">Source:</string>
+    <string name="viewer_connect">Connect</string>
+    <string name="viewer_stop">Stop</string>
+    <string name="viewer_manual">Manual:</string>
+    <string name="viewer_go">Go</string>
+    <string name="viewer_disconnected">Disconnected</string>
+    <string name="viewer_connecting">Connecting…</string>
+    <string name="sources_found">%1$d source(s) found</string>
+    <string name="sources_count">%1$d source(s)</string>
     <string name="viewer_no_source">No source selected</string>
+    <string name="enter_host">Enter a host address</string>
+    <string name="manual_hint_host">192.168.0.x</string>
+    <string name="manual_hint_port">6500</string>
+
+    <!-- Content descriptions -->
+    <string name="content_desc_switch_camera">Switch camera</string>
+    <string name="content_desc_toggle_guides">Toggle guides</string>
+    <string name="content_desc_toggle_overlay">Toggle info overlay</string>
 </resources>

@@ -11,9 +11,10 @@ local.properties
 
 # Logs and temp
 *.log
-logs.md
-errors.md
 
-# Do NOT ignore (upload these):
-# !gradle/wrapper/gradle-wrapper.jar
-# !gradle/wrapper/gradle-wrapper.properties
+# Markdown docs in project root only (keep README.md)
+/*.md
+!/README.md
+
+# Android Studio inspection outputs (root only; res/layout/*.xml are kept)
+/*.xml

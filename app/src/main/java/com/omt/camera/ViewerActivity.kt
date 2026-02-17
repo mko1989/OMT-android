@@ -22,7 +22,9 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.button.MaterialButton
 
 class ViewerActivity : AppCompatActivity() {
@@ -55,6 +57,8 @@ class ViewerActivity : AppCompatActivity() {
     // Native decode now outputs RGBA directly (swap done in C), so no color filter needed.
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
     private val handler = Handler(Looper.getMainLooper())
+    private val srcRect = Rect()
+    private val dstRect = Rect()
     private var overlayVisible = true
     private var isConnected = false
 
@@ -64,6 +68,14 @@ class ViewerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_viewer)
+
+        val rootFrame = findViewById<View>(R.id.rootFrame)
+        ViewCompat.setOnApplyWindowInsetsListener(rootFrame) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        ViewCompat.requestApplyInsets(rootFrame)
 
         videoSurface = findViewById(R.id.videoSurface)
         statusBadge = findViewById(R.id.statusBadge)
@@ -88,6 +100,7 @@ class ViewerActivity : AppCompatActivity() {
             override fun surfaceDestroyed(holder: SurfaceHolder) { surfaceReady = false }
         })
 
+        videoSurface.isClickable = true
         videoSurface.setOnClickListener { toggleOverlay() }
 
         connectButton.setOnClickListener { connectToSelected(); scheduleOverlayHide() }
@@ -146,7 +159,7 @@ class ViewerActivity : AppCompatActivity() {
                     if (discoveredSources.none { it.host == source.host && it.port == source.port }) {
                         discoveredSources.add(source)
                         rebuildSourceList()
-                        statusText.text = "${discoveredSources.size} source(s) found"
+                        statusText.text = getString(R.string.sources_found, discoveredSources.size)
                     }
                 }
             },
@@ -154,8 +167,8 @@ class ViewerActivity : AppCompatActivity() {
                 runOnUiThread {
                     discoveredSources.removeAll { it.name == name }
                     rebuildSourceList()
-                    statusText.text = if (discoveredSources.isEmpty()) "Scanning…"
-                    else "${discoveredSources.size} source(s)"
+                    statusText.text = if (discoveredSources.isEmpty()) getString(R.string.viewer_scanning)
+                    else getString(R.string.sources_count, discoveredSources.size)
                 }
             }
         )
@@ -173,7 +186,7 @@ class ViewerActivity : AppCompatActivity() {
     private fun connectToSelected() {
         val pos = sourceSpinner.selectedItemPosition
         if (pos < 0 || pos >= discoveredSources.size) {
-            Toast.makeText(this, "No source selected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.viewer_no_source), Toast.LENGTH_SHORT).show()
             return
         }
         val source = discoveredSources[pos]
@@ -184,7 +197,7 @@ class ViewerActivity : AppCompatActivity() {
         val host = manualHostEdit.text.toString().trim()
         val portStr = manualPortEdit.text.toString().trim()
         if (host.isEmpty()) {
-            Toast.makeText(this, "Enter a host address", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.enter_host), Toast.LENGTH_SHORT).show()
             return
         }
         connectTo(host, portStr.toIntOrNull() ?: 6500)
@@ -195,7 +208,7 @@ class ViewerActivity : AppCompatActivity() {
         Log.i(TAG, "Connecting to $host:$port")
         setConnectedUI(true)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        statusBadge.text = "Connecting…"
+        statusBadge.text = getString(R.string.viewer_connecting)
 
         receiver = OmtStreamReceiver(
             host = host, port = port,
@@ -206,7 +219,7 @@ class ViewerActivity : AppCompatActivity() {
             }},
             onError = { msg ->
                 runOnUiThread {
-                    statusBadge.text = "Disconnected"
+                    statusBadge.text = getString(R.string.viewer_disconnected)
                     statusText.text = msg
                     setConnectedUI(false)
                     window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -224,9 +237,9 @@ class ViewerActivity : AppCompatActivity() {
         runOnUiThread {
             setConnectedUI(false)
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            statusBadge.text = "Disconnected"
-            statusText.text = if (discoveredSources.isEmpty()) "Scanning…"
-            else "${discoveredSources.size} source(s)"
+            statusBadge.text = getString(R.string.viewer_disconnected)
+            statusText.text = if (discoveredSources.isEmpty()) getString(R.string.viewer_scanning)
+            else getString(R.string.sources_count, discoveredSources.size)
             if (surfaceReady) {
                 try {
                     val canvas = videoSurface.holder.lockCanvas()
@@ -263,11 +276,11 @@ class ViewerActivity : AppCompatActivity() {
             val offsetX = ((surfW - dstW) / 2).toInt()
             val offsetY = ((surfH - dstH) / 2).toInt()
 
+            srcRect.set(0, 0, bitmap.width, bitmap.height)
+            dstRect.set(offsetX, offsetY, offsetX + dstW, offsetY + dstH)
+
             canvas.drawColor(Color.BLACK)
-            canvas.drawBitmap(bitmap,
-                Rect(0, 0, bitmap.width, bitmap.height),
-                Rect(offsetX, offsetY, offsetX + dstW, offsetY + dstH),
-                paint)
+            canvas.drawBitmap(bitmap, srcRect, dstRect, paint)
         } catch (e: Exception) {
             Log.w(TAG, "renderFrame error: ${e.message}")
         } finally {

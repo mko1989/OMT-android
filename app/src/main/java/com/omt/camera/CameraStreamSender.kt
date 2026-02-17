@@ -59,8 +59,8 @@ class CameraStreamSender(
         // Audio: 48kHz stereo 32-bit float, planar (LLLL...RRRR...), ~960 samples/ch at 50fps
         private const val AUDIO_SAMPLE_RATE = 48000
         private const val AUDIO_CHANNELS = 2
-        private const val AUDIO_BITS = 32
         private const val AUDIO_SAMPLES_PER_CHANNEL = 960 // 48000 / 50
+        private val SKIP_BUF = ByteArray(8192)
     }
 
     private data class ClientChannel(
@@ -92,8 +92,6 @@ class CameraStreamSender(
         Log.i(TAG, "Microphone ${if (enabled) "ON" else "OFF"}")
     }
 
-    fun isAudioEnabled(): Boolean = audioEnabled.get()
-
     // --- Double-buffer for producer (camera) → consumer (encoder) ---
     private class FrameBuffer {
         var yData: ByteArray? = null
@@ -112,8 +110,8 @@ class CameraStreamSender(
     private var fpsFrameCount = 0L
     private var fpsLastLogTime = 0L
 
-    val isStreaming: Boolean
-        get() = running.get() && channels.any { it.socket.isConnected }
+    // Reusable buffers to avoid allocation in hot paths
+    private val metadataHdrBuf = ByteArray(OMT_HEADER_SIZE)
 
     fun start() {
         if (running.getAndSet(true)) return
@@ -361,7 +359,7 @@ class CameraStreamSender(
 
                 if (useVmx) {
                     val dataLength = OMT_VIDEO_EXT_HEADER_SIZE + vmxPayloadLen
-                    writeIntLE(hdrBytes, 12, dataLength)
+                    writeIntLEAt12(hdrBytes, dataLength)
                     for (ch in videoChannels) {
                         try { synchronized(ch.output) {
                             ch.output.write(hdrBytes, 0, 48)
@@ -372,7 +370,7 @@ class CameraStreamSender(
                 } else {
                     val ySize = width * height; val uvSize = width * (height / 2)
                     val dataLength = OMT_VIDEO_EXT_HEADER_SIZE + ySize + uvSize
-                    writeIntLE(hdrBytes, 12, dataLength)
+                    writeIntLEAt12(hdrBytes, dataLength)
                     for (ch in videoChannels) {
                         try { synchronized(ch.output) {
                             ch.output.write(hdrBytes, 0, 48)
@@ -515,17 +513,17 @@ class CameraStreamSender(
 
     private fun sendMetadataToChannel(ch: ClientChannel, xml: String) {
         val payload = xml.toByteArray(Charsets.UTF_8)
-        val hdr = ByteBuffer.allocate(OMT_HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN)
-        hdr.put(1); hdr.put(OMT_FRAME_METADATA.toByte())
-        hdr.putLong(0); hdr.putShort(0); hdr.putInt(payload.size)
-        ch.output.write(hdr.array()); ch.output.write(payload); ch.output.flush()
+        metadataHdrBuf[0] = 1
+        metadataHdrBuf[1] = OMT_FRAME_METADATA.toByte()
+        writeIntLEAt12(metadataHdrBuf, payload.size)
+        ch.output.write(metadataHdrBuf); ch.output.write(payload); ch.output.flush()
     }
 
-    private fun writeIntLE(buf: ByteArray, offset: Int, value: Int) {
-        buf[offset] = (value and 0xff).toByte()
-        buf[offset + 1] = ((value shr 8) and 0xff).toByte()
-        buf[offset + 2] = ((value shr 16) and 0xff).toByte()
-        buf[offset + 3] = ((value shr 24) and 0xff).toByte()
+    private fun writeIntLEAt12(buf: ByteArray, value: Int) {
+        buf[12] = (value and 0xff).toByte()
+        buf[13] = ((value shr 8) and 0xff).toByte()
+        buf[14] = ((value shr 16) and 0xff).toByte()
+        buf[15] = ((value shr 24) and 0xff).toByte()
     }
 
     private fun readIntLE(buf: ByteArray): Int =
@@ -533,9 +531,12 @@ class CameraStreamSender(
         ((buf[14].toInt() and 0xFF) shl 16) or ((buf[15].toInt() and 0xFF) shl 24)
 
     private fun skipBytes(input: java.io.DataInputStream, count: Int) {
-        val skip = ByteArray(minOf(count, 8192))
         var remaining = count
-        while (remaining > 0) { val n = input.read(skip, 0, minOf(remaining, skip.size)); if (n <= 0) break; remaining -= n }
+        while (remaining > 0) {
+            val n = input.read(SKIP_BUF, 0, minOf(remaining, SKIP_BUF.size))
+            if (n <= 0) break
+            remaining -= n
+        }
     }
 
     private fun handleSendError(ch: ClientChannel, e: Exception) {
