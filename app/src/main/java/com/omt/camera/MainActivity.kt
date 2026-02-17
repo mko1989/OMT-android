@@ -26,6 +26,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -34,6 +35,7 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -41,12 +43,12 @@ import androidx.core.view.WindowInsetsCompat
 import android.content.SharedPreferences
 import java.net.BindException
 import java.net.Inet4Address
-import java.net.InetAddress
 import java.net.NetworkInterface
 import java.util.Collections
 import java.util.Random
 import java.util.concurrent.Executors
 
+@OptIn(ExperimentalCamera2Interop::class)
 class MainActivity : AppCompatActivity() {
 
     data class ResOption(val label: String, val size: Size)
@@ -367,7 +369,7 @@ class MainActivity : AppCompatActivity() {
             context = this, sourceName = sourceName,
             onRegistered = { name -> runOnUiThread { statusBadge.text = name; updateStreamStatus(port) } },
             onRegistrationFailed = { msg -> runOnUiThread {
-                statusText.text = getString(R.string.not_streaming) + " — $msg"
+                statusText.text = getString(R.string.not_streaming_with_message, msg)
                 deviceIpText.text = getString(R.string.vmix_fallback_hint, getLocalIpAddress() ?: "?", port)
             }}
         )
@@ -462,7 +464,7 @@ class MainActivity : AppCompatActivity() {
             val wlanFirst = list.sortedBy { if (it.name.startsWith("wlan")) 0 else 1 }
             for (iface in wlanFirst) {
                 if (iface.isLoopback || !iface.isUp) continue
-                for (addr in Collections.list<InetAddress>(iface.inetAddresses)) {
+                for (addr in Collections.list(iface.inetAddresses)) {
                     if (addr is Inet4Address && !addr.isLoopbackAddress) return addr.hostAddress
                 }
             }

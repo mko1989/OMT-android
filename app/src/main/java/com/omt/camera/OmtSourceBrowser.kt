@@ -10,7 +10,7 @@ import android.util.Log
  * Discovers services of type `_omt._tcp` and resolves their host/port.
  */
 class OmtSourceBrowser(
-    private val context: Context,
+    context: Context,
     private val onSourceFound: (OmtSource) -> Unit,
     private val onSourceLost: (String) -> Unit
 ) {

@@ -17,7 +17,7 @@ static void* s_libvmx = nullptr;
 
 typedef struct { int width; int height; } VMX_SIZE;
 typedef unsigned char BYTE;
-enum { VMX_PROFILE_OMT_LQ = 133, VMX_PROFILE_OMT_SQ = 166, VMX_COLORSPACE_BT709 = 709 };
+enum { VMX_PROFILE_OMT_SQ = 166, VMX_COLORSPACE_BT709 = 709 };
 enum VMX_ERR { VMX_ERR_OK = 0 };
 
 // Encode functions
@@ -110,37 +110,6 @@ JNIEXPORT void JNICALL
 Java_com_omt_camera_VmxEncoder_nativeDestroy(JNIEnv* env, jclass, jlong handle) {
     if (handle && fp_VMX_Destroy)
         fp_VMX_Destroy((void*)(uintptr_t)handle);
-}
-
-JNIEXPORT jbyteArray JNICALL
-Java_com_omt_camera_VmxEncoder_nativeEncode(JNIEnv* env, jclass, jlong handle,
-        jbyteArray jY, jint strideY, jbyteArray jUV, jint strideUV) {
-    if (!handle || !fp_VMX_EncodeNV12 || !fp_VMX_SaveTo) return nullptr;
-    if (!jY || !jUV) return nullptr;
-
-    jbyte* yPtr = env->GetByteArrayElements(jY, nullptr);
-    jbyte* uvPtr = env->GetByteArrayElements(jUV, nullptr);
-    if (!yPtr || !uvPtr) {
-        if (yPtr) env->ReleaseByteArrayElements(jY, yPtr, JNI_ABORT);
-        if (uvPtr) env->ReleaseByteArrayElements(jUV, uvPtr, JNI_ABORT);
-        return nullptr;
-    }
-
-    int err = fp_VMX_EncodeNV12((void*)(uintptr_t)handle,
-            reinterpret_cast<BYTE*>(yPtr), strideY,
-            reinterpret_cast<BYTE*>(uvPtr), strideUV, 0);
-    env->ReleaseByteArrayElements(jY, yPtr, JNI_ABORT);
-    env->ReleaseByteArrayElements(jUV, uvPtr, JNI_ABORT);
-    if (err != VMX_ERR_OK) return nullptr;
-
-    if (!s_outBuf || s_outBufSize <= 0) return nullptr;
-    int written = fp_VMX_SaveTo((void*)(uintptr_t)handle, s_outBuf, s_outBufSize);
-    if (written <= 0 || written > s_outBufSize) return nullptr;
-
-    jbyteArray result = env->NewByteArray(static_cast<jsize>(written));
-    if (result)
-        env->SetByteArrayRegion(result, 0, written, reinterpret_cast<const jbyte*>(s_outBuf));
-    return result;
 }
 
 /**

@@ -159,7 +159,7 @@ class ViewerActivity : AppCompatActivity() {
                     if (discoveredSources.none { it.host == source.host && it.port == source.port }) {
                         discoveredSources.add(source)
                         rebuildSourceList()
-                        statusText.text = getString(R.string.sources_found, discoveredSources.size)
+                        statusText.text = resources.getQuantityString(R.plurals.sources_found, discoveredSources.size, discoveredSources.size)
                     }
                 }
             },
@@ -168,7 +168,7 @@ class ViewerActivity : AppCompatActivity() {
                     discoveredSources.removeAll { it.name == name }
                     rebuildSourceList()
                     statusText.text = if (discoveredSources.isEmpty()) getString(R.string.viewer_scanning)
-                    else getString(R.string.sources_count, discoveredSources.size)
+                    else resources.getQuantityString(R.plurals.sources_count, discoveredSources.size, discoveredSources.size)
                 }
             }
         )
@@ -239,7 +239,7 @@ class ViewerActivity : AppCompatActivity() {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             statusBadge.text = getString(R.string.viewer_disconnected)
             statusText.text = if (discoveredSources.isEmpty()) getString(R.string.viewer_scanning)
-            else getString(R.string.sources_count, discoveredSources.size)
+            else resources.getQuantityString(R.plurals.sources_count, discoveredSources.size, discoveredSources.size)
             if (surfaceReady) {
                 try {
                     val canvas = videoSurface.holder.lockCanvas()

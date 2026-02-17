@@ -12,9 +12,17 @@ local.properties
 # Logs and temp
 *.log
 
-# Markdown docs in project root only (keep README.md)
+# Markdown docs in project root — do not push (keep only README.md)
 /*.md
 !/README.md
+# Explicitly ignore common doc/log .md so they are never committed
+AUDIO_FIX.md
+BUILD_VMX.md
+GITHUB_UPLOAD.md
+OPTIMIZATION_NOTES.md
+PERFORMANCE_CHANGES.md
+errors.md
+logs.md
 
 # Android Studio inspection outputs (root only; res/layout/*.xml are kept)
 /*.xml

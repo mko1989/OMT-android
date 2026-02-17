@@ -1,5 +1,6 @@
 package com.omt.camera
 
+import android.annotation.SuppressLint
 import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
@@ -33,12 +34,14 @@ class StreamingService : Service() {
         createNotificationChannel()
     }
 
+    @SuppressLint("InlinedApi")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val port = intent?.getIntExtra("port", 6500) ?: 6500
         val notification = buildNotification(port)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val hasAudio = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
                     PackageManager.PERMISSION_GRANTED
+            @SuppressLint("InlinedApi")
             val serviceType = if (hasAudio)
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
             else

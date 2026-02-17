@@ -530,7 +530,7 @@ class CameraStreamSender(
         (buf[12].toInt() and 0xFF) or ((buf[13].toInt() and 0xFF) shl 8) or
         ((buf[14].toInt() and 0xFF) shl 16) or ((buf[15].toInt() and 0xFF) shl 24)
 
-    private fun skipBytes(input: java.io.DataInputStream, count: Int) {
+    private fun skipBytes(input: DataInputStream, count: Int) {
         var remaining = count
         while (remaining > 0) {
             val n = input.read(SKIP_BUF, 0, minOf(remaining, SKIP_BUF.size))

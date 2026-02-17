@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources">
     <string name="app_name">OMT Camera</string>
     <string name="hint_pc_ip">PC IP address</string>
     <string name="hint_port">Port (vMix/PC connects to this)</string>
@@ -40,6 +40,7 @@
     <string name="streaming_badge">STREAMING %1$s</string>
     <string name="live_badge">LIVE %1$s</string>
     <string name="not_streaming_waiting">Not streaming — waiting for vMix…</string>
+    <string name="not_streaming_with_message">Not streaming — %1$s</string>
     <string name="not_streaming_no_client">Not streaming (no client)</string>
     <string name="error_format">Error: %1$s</string>
 
@@ -54,12 +55,19 @@
     <string name="viewer_go">Go</string>
     <string name="viewer_disconnected">Disconnected</string>
     <string name="viewer_connecting">Connecting…</string>
-    <string name="sources_found">%1$d source(s) found</string>
-    <string name="sources_count">%1$d source(s)</string>
+    <plurals name="sources_found">
+        <item quantity="one">%d source found</item>
+        <item quantity="other">%d sources found</item>
+    </plurals>
+    <plurals name="sources_count">
+        <item quantity="one">%d source</item>
+        <item quantity="other">%d sources</item>
+    </plurals>
     <string name="viewer_no_source">No source selected</string>
     <string name="enter_host">Enter a host address</string>
     <string name="manual_hint_host">192.168.0.x</string>
     <string name="manual_hint_port">6500</string>
+    <string name="colon">:</string>
 
     <!-- Content descriptions -->
     <string name="content_desc_switch_camera">Switch camera</string>

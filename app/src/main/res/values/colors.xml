@@ -11,13 +11,7 @@
     <color name="accent_dim">#FF0288D1</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="guide_line">#55FFFFFF</color>
-    <color name="safe_area">#33FFFF00</color>
 
     <!-- EditText on light background -->
     <color name="edit_text_dark">#FF212121</color>
-
-    <!-- Legacy aliases -->
-    <color name="primary">@color/accent</color>
-    <color name="primary_dark">@color/surface_dark</color>
 </resources>

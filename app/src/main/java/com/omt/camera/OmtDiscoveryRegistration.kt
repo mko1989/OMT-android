@@ -13,7 +13,7 @@ import java.net.InetAddress
  * vMix and other OMT receivers discover sources via mDNS.
  */
 class OmtDiscoveryRegistration(
-    private val context: Context,
+    context: Context,
     private val sourceName: String = "Android (OMT Camera)",
     private val onRegistered: ((String) -> Unit)? = null,
     private val onRegistrationFailed: ((String) -> Unit)? = null
@@ -58,7 +58,7 @@ class OmtDiscoveryRegistration(
             setPort(port)
             hostAddress?.takeIf { it.isNotBlank() }?.let { addr ->
                 try {
-                    setHost(InetAddress.getByName(addr))
+                    host = InetAddress.getByName(addr)
                     Log.d(TAG, "Advertising at $addr:$port")
                 } catch (e: Exception) {
                     Log.w(TAG, "Could not set host $addr", e)

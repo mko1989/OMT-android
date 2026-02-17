@@ -130,7 +130,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=":"
+                android:text="@string/colon"
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp" />
 
@@ -167,7 +167,7 @@
                 android:gravity="end"
                 android:text="@string/viewer_scanning"
                 android:textColor="@color/text_secondary"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:singleLine="true" />
         </LinearLayout>
     </LinearLayout>

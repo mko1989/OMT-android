@@ -24,7 +24,7 @@ class SafeGuideView @JvmOverloads constructor(
         set(value) { field = value; invalidate() }
 
     private val thirdsPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0x55FFFFFF.toInt()
+        color = 0x55FFFFFF
         strokeWidth = 1f
         style = Paint.Style.STROKE
     }
@@ -36,21 +36,21 @@ class SafeGuideView @JvmOverloads constructor(
     }
 
     private val actionSafePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0x44FFFF00.toInt()
+        color = 0x44FFFF00
         strokeWidth = 1f
         style = Paint.Style.STROKE
         pathEffect = DashPathEffect(floatArrayOf(12f, 8f), 0f)
     }
 
     private val titleSafePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0x44FF4444.toInt()
+        color = 0x44FF4444
         strokeWidth = 1f
         style = Paint.Style.STROKE
         pathEffect = DashPathEffect(floatArrayOf(6f, 6f), 0f)
     }
 
     private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0x66FFFFFF.toInt()
+        color = 0x66FFFFFF
         textSize = 20f
     }
 

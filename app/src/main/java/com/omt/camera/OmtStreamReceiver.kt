@@ -204,7 +204,6 @@ class OmtStreamReceiver(
         val buf = ByteBuffer.wrap(data, 0, OMT_VIDEO_EXT_HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN)
         val codec = buf.int; val width = buf.int; val height = buf.int
         if (width <= 0 || height <= 0 || width > 7680 || height > 4320) return
-        val payloadOffset = OMT_VIDEO_EXT_HEADER_SIZE
         val payloadLen = dataLen - OMT_VIDEO_EXT_HEADER_SIZE
         if (payloadLen <= 0) return
 
@@ -368,8 +367,7 @@ class OmtStreamReceiver(
             Log.i(TAG, "VMX decoder created: ${width}x$height")
         }
         val offset = OMT_VIDEO_EXT_HEADER_SIZE
-        val vmxBytes = if (offset == 0 && len == data.size) data
-            else ByteArray(len).also { System.arraycopy(data, offset, it, 0, len) }
+        val vmxBytes = ByteArray(len).also { System.arraycopy(data, offset, it, 0, len) }
         return VmxDecoder.decodeFrame(vmxHandle, vmxBytes, len, bgraBuf!!, width, height)
     }
 

@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textColor="@color/text_secondary"
-            android:textSize="10sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/videoHintText"
@@ -88,7 +88,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textColor="@color/text_secondary"
-            android:textSize="9sp"
+            android:textSize="11sp"
             android:visibility="gone" />
     </LinearLayout>
 
